@@ -1,39 +1,198 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tetris de Areia</title>
-  <link rel="stylesheet" href="./style.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tetris de Areia</title>
+
+<style>
+body{
+  margin:0;
+  background:#050510;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  font-family:Arial;
+  color:white;
+}
+
+canvas{
+  border:4px solid #ffd36a;
+  background:#070712;
+}
+</style>
 </head>
+
 <body>
-  <main class="game">
-    <canvas id="gameCanvas" width="320" height="640"></canvas>
 
-    <aside class="panel">
-      <h1>SAND<br>TETRIS</h1>
+<canvas id="game" width="320" height="640"></canvas>
 
-      <div class="info">
-        <span>Pontos</span>
-        <strong id="score">0</strong>
-      </div>
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
-      <div class="info">
-        <span>Nível</span>
-        <strong id="level">1</strong>
-      </div>
+const W = canvas.width;
+const H = canvas.height;
 
-      <button id="restartBtn">Reiniciar</button>
+const GRAIN = 4;
+const BLOCK = 32;
 
-      <p class="help">
-        ← → mover<br>
-        ↑ girar<br>
-        ↓ acelerar<br>
-        Espaço: cair
-      </p>
-    </aside>
-  </main>
+let sand;
+let piece;
 
-  <script src="./script.js"></script>
+const colors = ["#ffd166","#f4a261","#e76f51","#ffdd57"];
+
+const shapes = [
+  [[1,1,1,1]],
+  [[1,1],[1,1]],
+  [[0,1,0],[1,1,1]]
+];
+
+function start(){
+  sand = Array.from({length:H/GRAIN},()=>Array(W/GRAIN).fill(null));
+  piece = newPiece();
+}
+
+function newPiece(){
+  return{
+    matrix:shapes[Math.floor(Math.random()*shapes.length)],
+    x:120,
+    y:0,
+    speed:1.5,
+    color:colors[Math.floor(Math.random()*colors.length)]
+  }
+}
+
+function blocks(){
+  let arr=[];
+  piece.matrix.forEach((r,y)=>{
+    r.forEach((v,x)=>{
+      if(v){
+        arr.push({
+          x:piece.x + x*BLOCK,
+          y:piece.y + y*BLOCK
+        });
+      }
+    });
+  });
+  return arr;
+}
+
+function touching(){
+  for(let b of blocks()){
+    if(b.y+BLOCK>=H) return true;
+
+    let bottom = Math.floor((b.y+BLOCK)/GRAIN);
+    let left = Math.floor(b.x/GRAIN);
+    let right = Math.floor((b.x+BLOCK-1)/GRAIN);
+
+    for(let x=left;x<=right;x++){
+      if(sand[bottom] && sand[bottom][x]) return true;
+    }
+  }
+  return false;
+}
+
+function toSand(){
+  for(let b of blocks()){
+    for(let y=0;y<BLOCK;y+=GRAIN){
+      for(let x=0;x<BLOCK;x+=GRAIN){
+        let sx = Math.floor((b.x+x)/GRAIN);
+        let sy = Math.floor((b.y+y)/GRAIN);
+
+        if(sy>=0 && sy<sand.length && sx>=0 && sx<sand[0].length){
+          sand[sy][sx]=piece.color;
+        }
+      }
+    }
+  }
+  piece = newPiece();
+}
+
+function updateSand(){
+  for(let y=sand.length-2;y>=0;y--){
+    for(let x=0;x<sand[y].length;x++){
+      if(!sand[y][x]) continue;
+
+      let c = sand[y][x];
+
+      if(!sand[y+1][x]){
+        sand[y+1][x]=c;
+        sand[y][x]=null;
+      }else{
+        let dir = Math.random()<0.5?-1:1;
+
+        if(sand[y+1][x+dir]==null){
+          sand[y+1][x+dir]=c;
+          sand[y][x]=null;
+        }
+      }
+    }
+  }
+}
+
+function draw(){
+  ctx.fillStyle="#050510";
+  ctx.fillRect(0,0,W,H);
+
+  // areia
+  for(let y=0;y<sand.length;y++){
+    for(let x=0;x<sand[y].length;x++){
+      if(sand[y][x]){
+        ctx.fillStyle=sand[y][x];
+        ctx.fillRect(x*GRAIN,y*GRAIN,GRAIN,GRAIN);
+      }
+    }
+  }
+
+  // peça
+  ctx.fillStyle=piece.color;
+  for(let b of blocks()){
+    for(let y=0;y<BLOCK;y+=GRAIN){
+      for(let x=0;x<BLOCK;x+=GRAIN){
+        ctx.fillRect(b.x+x,b.y+y,GRAIN,GRAIN);
+      }
+    }
+  }
+}
+
+let keys={};
+
+document.addEventListener("keydown",e=>{
+  keys[e.key]=true;
+
+  if(e.key==="ArrowUp"){
+    let old = piece.matrix;
+    piece.matrix = old[0].map((_,i)=>old.map(r=>r[i]).reverse());
+  }
+});
+
+document.addEventListener("keyup",e=>{
+  keys[e.key]=false;
+});
+
+function loop(){
+  if(keys["ArrowLeft"]) piece.x-=3;
+  if(keys["ArrowRight"]) piece.x+=3;
+
+  piece.y += keys["ArrowDown"] ? 5 : piece.speed;
+
+  if(touching()){
+    piece.y -= keys["ArrowDown"] ? 5 : piece.speed;
+    toSand();
+  }
+
+  updateSand();
+  updateSand();
+
+  draw();
+  requestAnimationFrame(loop);
+}
+
+start();
+loop();
+</script>
+
 </body>
 </html>
