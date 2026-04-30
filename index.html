@@ -1,39 +1,39 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tetris de Areia</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-  <div class="game">
-    <canvas id="game" width="320" height="640"></canvas>
+  <main class="game">
+    <canvas id="gameCanvas" width="320" height="640"></canvas>
 
-    <div class="panel">
+    <aside class="panel">
       <h1>SAND<br>TETRIS</h1>
 
       <div class="info">
         <span>Pontos</span>
-        <b id="score">0</b>
+        <strong id="score">0</strong>
       </div>
 
       <div class="info">
         <span>Nível</span>
-        <b id="level">1</b>
+        <strong id="level">1</strong>
       </div>
 
-      <button id="restart">Reiniciar</button>
+      <button id="restartBtn">Reiniciar</button>
 
       <p class="help">
         ← → mover<br>
         ↑ girar<br>
         ↓ acelerar<br>
-        Espaço cair
+        Espaço: cair
       </p>
-    </div>
-  </div>
+    </aside>
+  </main>
 
-  <script src="script.js"></script>
+  <script src="./script.js"></script>
 </body>
 </html>
